@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+	.menuButton {
+		@apply bg-blue-500 hover:bg-white hover:text-blue-500 text-white border border-blue-500 font-bold py-2 px-4 m-2
+	}
+
+}
