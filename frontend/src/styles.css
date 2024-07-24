@@ -9,3 +9,19 @@
 	}
 
 }
+
+table {
+	border: 1px solid #000;
+
+}
+
+thead {
+	background-color: #e7e7e7;
+}
+tbody > tr:nth-of-type(even) {
+  background-color: rgb(237 238 242);
+}
+td {
+	padding: 10px;
+	text-align: center;
+}

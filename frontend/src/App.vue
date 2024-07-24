@@ -1,6 +1,6 @@
 <template>
 	<Menu></Menu>
-	<div class="w-max mx-auto mt-10">
+	<div class="w-full mx-auto mt-10">
 		<RouterView></RouterView>
 	</div>
 </template>
