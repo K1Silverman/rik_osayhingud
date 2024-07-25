@@ -1,5 +1,5 @@
 <template>
-	<div class="w-max mx-auto mt-10">
+	<div class="w-max mx-auto mt-5">
 		<RouterLink to="/" v-if="!isHomepage" class="menuButton"
 			>Avalehele</RouterLink
 		>

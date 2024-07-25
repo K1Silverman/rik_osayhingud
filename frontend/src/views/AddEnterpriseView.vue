@@ -1,5 +1,5 @@
 <template>
-	<div class="max-w-sm mx-auto w-[200%]">
+	<div class="mx-auto w-[30%]">
 		<div v-for="field in formFields.base" class="mb-2">
 			<label
 				:for="field.key"
@@ -12,7 +12,6 @@
 				:id="field.key"
 				v-model="form[field.key]"
 				:min="field.minValue"
-				class="bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
 				required
 			/>
 			<input
@@ -20,55 +19,20 @@
 				:type="field.type"
 				:id="field.key"
 				v-model="form[field.key]"
-				class="bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
 				required
 			/>
 		</div>
-		<div class="mb-2 flex-auto">
+		<div class="mb-2">
 			<label class="block text-sm font-medium text-gray-900">Asutaja(d)</label>
-			<table
-				v-if="this.form.founders.length > 0"
-				class="w-[200%] left-[-50%] relative border-collapse"
-			>
-				<thead>
-					<tr>
-						<th scope="col">Nimi</th>
-						<th scope="col">Reg. kood/IK</th>
-						<th scope="col">Osaniku osa suurus (€)</th>
-						<th scope="col">Osaniku osa suurus (%)</th>
-					</tr>
-				</thead>
-				<tbody class="">
-					<tr v-for="(founder, index) in form.founders">
-						<td scope="row" v-if="founder.nic">
-							{{ founder.firstName }} {{ founder.lastName }}
-						</td>
-						<td scope="row" v-else-if="founder.registryCode">
-							{{ founder.name }}
-						</td>
-						<td v-if="founder.nic">
-							{{ founder.nic }}
-						</td>
-						<td v-else-if="registryCode">{{ founder.registryCode }}</td>
-						<td>{{ founder.capacity }} €</td>
-						<td
-							v-if="
-								(founder.capacity / form.totalCapital) * 100 > 0 &&
-								(founder.capacity / form.totalCapital) * 100 < 100
-							"
-						>
-							{{ ((founder.capacity / form.totalCapital) * 100).toFixed(2) }} %
-						</td>
-						<td>
-							<i
-								class="fa-regular fa-trash-can cursor-pointer"
-								@click="removeFounder(index)"
-							></i>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			<div class="flex py-1">
+			<div class="w-full min-w-min">
+				<ShareholderTable
+					v-if="form.founders.length > 0"
+					:shareholders="form.founders"
+					:totalCapital="form.totalCapital"
+				/>
+			</div>
+
+			<div class="flex justify-start py-1">
 				<input type="checkbox" v-model="fie" class="mr-2" />
 				<label class="block text-sm font-medium text-gray-900">FIE</label>
 			</div>
@@ -77,10 +41,9 @@
 				v-if="fie"
 				type="text"
 				id=""
-				class="bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
 				:required="form.founders.length < 1"
 			/>
-			<div v-if="!fie" class="flex w-[200%] left-[-50%] relative">
+			<div v-if="!fie" class="flex w-[200%] relative">
 				<div class="mr-2" v-for="field in formFields.founder">
 					<label
 						class="block text-sm font-medium text-gray-900"
@@ -91,7 +54,6 @@
 						:type="field.type"
 						:id="field.key"
 						v-model="physicalFounder[field.key]"
-						class="bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
 						:required="form.founders.length < 1"
 					/>
 				</div>
@@ -112,8 +74,11 @@
 	</div>
 </template>
 <script>
+import ShareholderTable from '../views/components/ShareholderTable.vue';
+
 export default {
 	name: 'AddEnterpriseView',
+	components: { ShareholderTable },
 	data() {
 		return {
 			form: {
@@ -127,12 +92,12 @@ export default {
 				base: {
 					name: {
 						label: 'Osaühingu nimi',
-						type: 'input',
+						type: 'text',
 						key: 'name',
 					},
 					registryCode: {
 						label: 'Registrikood',
-						type: 'input',
+						type: 'text',
 						key: 'registryCode',
 					},
 					dateOfFoundation: {
@@ -195,9 +160,6 @@ export default {
 				nic: '',
 				capacity: 1,
 			};
-		},
-		removeFounder(index) {
-			this.form.founders.splice(index, 1);
 		},
 		submitForm() {
 			this.validateForm();

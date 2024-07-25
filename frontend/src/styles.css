@@ -11,17 +11,25 @@
 }
 
 table {
-	border: 1px solid #000;
+	border: 1px solid #3b82f6;
 
 }
 
 thead {
-	background-color: #e7e7e7;
+	background-color: #3b82f6;
+}
+th {
+	padding-left: 10px;
+	padding-right: 10px;
 }
 tbody > tr:nth-of-type(even) {
-  background-color: rgb(237 238 242);
+  background-color: #90b9ff31;
 }
 td {
 	padding: 10px;
 	text-align: center;
+}
+
+input[type="text"], input[type="number"]{
+	@apply bg-gray-50 border border-gray-300 text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
 }
