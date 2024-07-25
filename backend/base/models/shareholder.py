@@ -7,14 +7,14 @@ class Shareholder(models.Model):
 	def __str__(self):
 		return self.name
 
-class fie(Shareholder):
+class Fie(Shareholder):
 	name = models.CharField(max_length=100)
 	registry_code = models.CharField(max_length=7)
 
 	def __str__(self):
 		return self.name
 
-class physical(Shareholder):
+class Physical(Shareholder):
 	first_name = models.CharField(max_length=100)
 	last_name = models.CharField(max_length=100)
 	nic = models.CharField(max_length=12)

@@ -37,7 +37,7 @@
 				<td v-else-if="founder.nic && founder.isEdit">
 					<input type="text" v-model="founder.nic" placeholder="Isikukood" />
 				</td>
-				<td v-else-if="founder.registryCode && !founder.isEdit">
+				<td v-else-if="founder.registryCode">
 					{{ founder.registryCode }}
 				</td>
 				<td v-else-if="founder.registryCode && founder.isEdit">
@@ -48,25 +48,15 @@
 					/>
 				</td>
 				<!-- CAPACITY -->
-				<td v-if="!founder.isEdit">{{ founder.capacity }} €</td>
-				<td v-else>
+				<td v-if="founder.isEdit || founder.capacity < 1">
 					<input
 						type="number"
 						v-model="founder.capacity"
 						placeholder="Osaniku osa suurus (€)"
 					/>
 				</td>
-				<td v-if="!founder.isEdit" class="w-20">
-					<i
-						class="fa-regular fa-pen-to-square cursor-pointer hover:text-blue-500 mx-2"
-						@click="editRow(index)"
-					></i>
-					<i
-						class="fa-regular fa-trash-can cursor-pointer hover:text-red-500"
-						@click="removeFounder(index)"
-					></i>
-				</td>
-				<td v-else class="w-20">
+				<td v-else-if="!founder.isEdit">{{ founder.capacity }}</td>
+				<td v-if="founder.isEdit || founder.capacity < 1" class="w-20">
 					<i
 						class="fa-solid fa-check hover:text-green-500 mx-2"
 						@click="saveChanges(index)"
@@ -76,8 +66,30 @@
 						@click="discardChanges(index)"
 					></i>
 				</td>
+				<td v-else-if="!founder.isEdit" class="w-20">
+					<i
+						class="fa-regular fa-pen-to-square cursor-pointer hover:text-blue-500 mx-2"
+						@click="editRow(index)"
+					></i>
+					<i
+						class="fa-regular fa-trash-can cursor-pointer hover:text-red-500"
+						@click="removeFounder(index)"
+					></i>
+				</td>
 			</tr>
 		</tbody>
+		<tfoot>
+			<tr>
+				<td class="text-right text-xs leading-3" colspan="2">
+					Osanike osade suuruste summa peab võrduma kogukapitaliga
+				</td>
+				<td>
+					<span :class="value === 0 ? '' : 'text-red-500'">{{
+						shareholdersTotalCapital
+					}}</span>
+				</td>
+			</tr>
+		</tfoot>
 	</table>
 </template>
 <script>
@@ -95,14 +107,7 @@ export default {
 			this.shareholders.splice(index, 1);
 		},
 		editRow(index) {
-			console.log('editRow: ' + index);
-			console.log(
-				'Mod. Shareholder: ' + JSON.stringify(this.modifiedShareholders[index])
-			);
 			this.modifiedShareholders[index].isEdit = true;
-			console.log(
-				'Mod. Shareholder2: ' + this.modifiedShareholders[index].isEdit
-			);
 			this.$forceUpdate();
 		},
 		saveChanges(index) {
@@ -126,6 +131,13 @@ export default {
 				...shareholder,
 				isEdit: false,
 			}));
+		},
+		shareholdersTotalCapital() {
+			let shareholdersCapitalTotal = 0;
+			this.shareholders.forEach((shareholder) => {
+				shareholdersCapitalTotal += shareholder.capacity;
+			});
+			return shareholdersCapitalTotal - this.totalCapital;
 		},
 	},
 };
