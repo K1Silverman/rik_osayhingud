@@ -28,9 +28,9 @@
 			>
 			<div class="w-full min-w-min">
 				<ShareholderTable
-					v-if="form.founders.length > 0"
-					:shareholders="form.founders"
-					:totalCapital="form.totalCapital"
+					v-if="form.shareholder.length > 0"
+					:shareholders="form.shareholder"
+					:totalCapital="form.total_capital"
 				/>
 			</div>
 
@@ -38,14 +38,12 @@
 				<input type="checkbox" v-model="fie" class="mr-2" />
 				<label class="block text-sm font-medium text-gray-900">FIE</label>
 			</div>
-			<div class="flex">
-				<Searchbar
-					v-if="fie"
-					@search="fetchSearchResults"
-					@select="addJuridicalFounder"
-					:searchResults="searchResults"
-				/>
-			</div>
+			<Searchbar
+				v-if="fie"
+				@search="fetchSearchResults"
+				@select="addJuridicalFounder"
+				:searchResults="searchResults"
+			/>
 
 			<div v-if="!fie" class="flex w-[200%] relative">
 				<div class="mr-2" v-for="field in formFields.founder">
@@ -58,7 +56,7 @@
 						:type="field.type"
 						:id="field.key"
 						v-model="physicalFounder[field.key]"
-						:required="form.founders.length < 1"
+						:required="form.shareholder.length < 1"
 					/>
 				</div>
 				<button
@@ -73,7 +71,7 @@
 			class="mt-5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm w-full sm:w-auto px-5 py-2.5 text-center"
 			@click="submitForm()"
 		>
-			Submit
+			Salvesta
 		</button>
 	</div>
 </template>
@@ -88,10 +86,10 @@ export default {
 		return {
 			form: {
 				name: '',
-				registryCode: '',
-				dateOfFoundation: '',
-				totalCapital: 2500,
-				founders: [],
+				registry_code: '',
+				first_entry_date: '',
+				total_capital: 2500,
+				shareholder: [],
 			},
 			formFields: {
 				base: {
@@ -100,20 +98,20 @@ export default {
 						type: 'text',
 						key: 'name',
 					},
-					registryCode: {
+					registry_code: {
 						label: 'Registrikood',
 						type: 'text',
-						key: 'registryCode',
+						key: 'registry_code',
 					},
-					dateOfFoundation: {
+					first_entry_date: {
 						label: 'Asutamise kuupäev',
 						type: 'date',
-						key: 'dateOfFoundation',
+						key: 'first_entry_date',
 					},
-					totalCapital: {
+					total_capital: {
 						label: 'Kogukapitali suurus (€)',
 						type: 'number',
-						key: 'totalCapital',
+						key: 'total_capital',
 						minValue: 2500,
 					},
 				},
@@ -121,12 +119,12 @@ export default {
 					firstName: {
 						label: 'Eesnimi',
 						type: 'text',
-						key: 'firstName',
+						key: 'first_name',
 					},
 					lastName: {
 						label: 'Perekonnanimi',
 						type: 'text',
-						key: 'lastName',
+						key: 'last_name',
 					},
 					nic: {
 						label: 'Isikukood',
@@ -143,15 +141,17 @@ export default {
 			},
 			fie: false,
 			physicalFounder: {
-				firstName: '',
-				lastName: '',
+				first_name: '',
+				last_name: '',
 				nic: '',
 				capacity: 1,
+				shareholderType: 'physical',
 			},
 			juridicalFounder: {
 				name: '',
-				registryCode: '',
+				registry_code: '',
 				capacity: 0,
+				shareholderType: 'fie',
 			},
 			searchMode: 'fie',
 			searchResults: [],
@@ -159,29 +159,31 @@ export default {
 	},
 	methods: {
 		addPhysicalFounder() {
-			this.form.founders.push(this.physicalFounder);
+			this.form.shareholder.push(this.physicalFounder);
 			this.physicalFounder = {
-				firstName: '',
-				lastName: '',
+				first_name: '',
+				last_name: '',
 				nic: '',
 				capacity: 1,
+				shareholderType: 'physical',
 			};
 		},
 		addJuridicalFounder(fie) {
 			this.juridicalFounder.name = fie.name;
-			this.juridicalFounder.registryCode = fie.registry_code;
-			this.form.founders.push(this.juridicalFounder);
+			this.juridicalFounder.registry_code = fie.registry_code;
+			this.form.shareholder.push(this.juridicalFounder);
 			this.juridicalFounder = {
 				name: '',
-				registryCode: '',
+				registry_code: '',
 				capacity: 0,
 			};
 		},
 		fetchSearchResults(query) {
 			this.$http
-				.get(this.searchMode, {
+				.get('search', {
 					params: {
 						queryString: query,
+						searchMode: this.searchMode,
 					},
 				})
 				.then((response) => {
@@ -190,15 +192,18 @@ export default {
 		},
 		submitForm() {
 			this.validateForm();
+			this.$http.post('add', this.form).then((response) => {
+				console.log(response.data);
+			});
 		},
 		validateForm() {
 			let nameLengthValidation =
 				this.form.name.length >= 3 && this.form.name.length <= 100;
-			let registryCodeLengthValidation = this.form.registryCode.length == 7;
+			let registry_codeLengthValidation = this.form.registry_code.length == 7;
 			let currentDate = new Date();
-			let dateValidation = new Date(this.form.dateOfFoundation) <= currentDate;
-			let totalCapitalSizeValidation = this.form.totalCapital >= 2500;
-			// let foundersTotalCapitalValidation = this.foundersTotalCapital();
+			let dateValidation = new Date(this.form.first_entry_date) <= currentDate;
+			let total_capitalSizeValidation = this.form.total_capital >= 2500;
+			// let foundersTotal_capitalValidation = this.foundersTotal_capital();
 		},
 	},
 };

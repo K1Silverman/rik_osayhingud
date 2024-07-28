@@ -1,7 +1,10 @@
+
+from ..models import Fie
+# from .shareholder_serializer import ShareholderSerializer
 from rest_framework import serializers
-from ..models import DummyFie
+
 
 class FieSerializer(serializers.ModelSerializer):
 	class Meta:
-		model = DummyFie
-		fields = '__all__'
+		model = Fie
+		fields = ['id', 'capacity', 'founder', 'name', 'registry_code']

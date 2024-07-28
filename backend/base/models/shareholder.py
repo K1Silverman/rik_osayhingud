@@ -4,16 +4,19 @@ class Shareholder(models.Model):
 	capacity = models.IntegerField()
 	founder = models.BooleanField(default=True)
 
-	def __str__(self):
-		return self.name
+	def is_fie(self):
+		return getattr(self, 'fie', None) is not None
+	
+	def is_physical(self):
+		return getattr(self, 'physical', None) is not None
 
 class Fie(Shareholder):
 	name = models.CharField(max_length=100)
-	registry_code = models.CharField(max_length=7)
+	registry_code = models.CharField(max_length=10)
 
 	def __str__(self):
 		return self.name
-
+	
 class Physical(Shareholder):
 	first_name = models.CharField(max_length=100)
 	last_name = models.CharField(max_length=100)

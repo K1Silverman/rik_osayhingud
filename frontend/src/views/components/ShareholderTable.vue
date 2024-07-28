@@ -9,54 +9,62 @@
 			</tr>
 		</thead>
 		<tbody class="">
-			<tr v-for="(founder, index) in modifiedShareholders" :key="index">
+			<tr v-for="(shareholder, index) in modifiedShareholders" :key="index">
 				<!-- NIMI -->
-				<td scope="row" v-if="founder.nic && !founder.isEdit">
-					{{ founder.firstName }} {{ founder.lastName }}
+				<td scope="row" v-if="shareholder.nic && !shareholder.isEdit">
+					{{ shareholder.first_name }} {{ shareholder.last_name }}
 				</td>
-				<td scope="row" v-else-if="founder.nic && founder.isEdit" class="flex">
+				<td
+					scope="row"
+					v-else-if="shareholder.nic && shareholder.isEdit"
+					class="flex"
+				>
 					<input
 						class="mr-2"
 						type="text"
-						v-model="founder.firstName"
+						v-model="shareholder.first_name"
 						placeholder="Eesnimi"
 					/>
 					<input
 						type="text"
-						v-model="founder.lastName"
+						v-model="shareholder.last_name"
 						placeholder="Perekonnanimi"
 					/>
 				</td>
-				<td scope="row" v-else-if="founder.registryCode">
-					{{ founder.name }}
+				<td scope="row" v-else-if="shareholder.registry_code">
+					{{ shareholder.name }}
 				</td>
 				<!-- REG. KOOD/IK -->
-				<td v-if="founder.nic && !founder.isEdit">
-					{{ founder.nic }}
+				<td v-if="shareholder.nic && !shareholder.isEdit">
+					{{ shareholder.nic }}
 				</td>
-				<td v-else-if="founder.nic && founder.isEdit">
-					<input type="text" v-model="founder.nic" placeholder="Isikukood" />
-				</td>
-				<td v-else-if="founder.registryCode">
-					{{ founder.registryCode }}
-				</td>
-				<td v-else-if="founder.registryCode && founder.isEdit">
+				<td v-else-if="shareholder.nic && shareholder.isEdit">
 					<input
 						type="text"
-						v-model="founder.registryCode"
+						v-model="shareholder.nic"
+						placeholder="Isikukood"
+					/>
+				</td>
+				<td v-else-if="shareholder.registry_code">
+					{{ shareholder.registry_code }}
+				</td>
+				<td v-else-if="shareholder.registry_code && shareholder.isEdit">
+					<input
+						type="text"
+						v-model="shareholder.registry_code"
 						placeholder="Registrikood"
 					/>
 				</td>
 				<!-- CAPACITY -->
-				<td v-if="founder.isEdit || founder.capacity < 1">
+				<td v-if="shareholder.isEdit || shareholder.capacity < 1">
 					<input
 						type="number"
-						v-model="founder.capacity"
+						v-model="shareholder.capacity"
 						placeholder="Osaniku osa suurus (€)"
 					/>
 				</td>
-				<td v-else-if="!founder.isEdit">{{ founder.capacity }}</td>
-				<td v-if="founder.isEdit || founder.capacity < 1" class="w-20">
+				<td v-else-if="!shareholder.isEdit">{{ shareholder.capacity }}</td>
+				<td v-if="shareholder.isEdit || shareholder.capacity < 1" class="w-20">
 					<i
 						class="fa-solid fa-check hover:text-green-500 mx-2"
 						@click="saveChanges(index)"
@@ -66,14 +74,14 @@
 						@click="discardChanges(index)"
 					></i>
 				</td>
-				<td v-else-if="!founder.isEdit" class="w-20">
+				<td v-else-if="!shareholder.isEdit" class="w-20">
 					<i
 						class="fa-regular fa-pen-to-square cursor-pointer hover:text-blue-500 mx-2"
 						@click="editRow(index)"
 					></i>
 					<i
 						class="fa-regular fa-trash-can cursor-pointer hover:text-red-500"
-						@click="removeFounder(index)"
+						@click="removeShareholder(index)"
 					></i>
 				</td>
 			</tr>
@@ -103,7 +111,7 @@ export default {
 		return {};
 	},
 	methods: {
-		removeFounder(index) {
+		removeShareholder(index) {
 			this.shareholders.splice(index, 1);
 		},
 		editRow(index) {
