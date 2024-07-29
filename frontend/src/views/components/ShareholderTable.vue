@@ -13,6 +13,7 @@
 				<!-- NIMI -->
 				<td scope="row" v-if="shareholder.nic && !shareholder.isEdit">
 					{{ shareholder.first_name }} {{ shareholder.last_name }}
+					<span v-if="shareholder.founder" class="italic">(Asutaja)</span>
 				</td>
 				<td
 					scope="row"
@@ -33,6 +34,7 @@
 				</td>
 				<td scope="row" v-else-if="shareholder.registry_code">
 					{{ shareholder.name }}
+					<span v-if="shareholder.founder" class="italic">(Asutaja)</span>
 				</td>
 				<!-- REG. KOOD/IK -->
 				<td v-if="shareholder.nic && !shareholder.isEdit">
@@ -64,7 +66,10 @@
 					/>
 				</td>
 				<td v-else-if="!shareholder.isEdit">{{ shareholder.capacity }}</td>
-				<td v-if="shareholder.isEdit || shareholder.capacity < 1" class="w-20">
+				<td
+					v-if="(isFormEdit && shareholder.isEdit) || shareholder.capacity < 1"
+					class="w-20"
+				>
 					<i
 						class="fa-solid fa-check hover:text-green-500 mx-2"
 						@click="saveChanges(index)"
@@ -74,7 +79,7 @@
 						@click="discardChanges(index)"
 					></i>
 				</td>
-				<td v-else-if="!shareholder.isEdit" class="w-20">
+				<td v-else-if="isFormEdit && !shareholder.isEdit" class="w-20">
 					<i
 						class="fa-regular fa-pen-to-square cursor-pointer hover:text-blue-500 mx-2"
 						@click="editRow(index)"
@@ -86,15 +91,20 @@
 				</td>
 			</tr>
 		</tbody>
-		<tfoot>
+		<tfoot v-if="isAdd">
 			<tr>
 				<td class="text-right text-xs leading-3" colspan="2">
 					Osanike osade suuruste summa peab võrduma kogukapitaliga
 				</td>
 				<td>
-					<span :class="value === 0 ? '' : 'text-red-500'">{{
-						shareholdersTotalCapital
-					}}</span>
+					<span
+						:class="
+							value === undefined || value === 0
+								? 'text-green-500'
+								: 'text-red-500'
+						"
+						>{{ shareholdersTotalCapital }}</span
+					>
 				</td>
 			</tr>
 		</tfoot>
@@ -106,6 +116,8 @@ export default {
 	props: {
 		shareholders: Array,
 		totalCapital: 0,
+		isFormEdit: false,
+		isAdd: false,
 	},
 	data() {
 		return {};
@@ -135,17 +147,21 @@ export default {
 	},
 	computed: {
 		modifiedShareholders() {
-			return this.shareholders.map((shareholder) => ({
-				...shareholder,
-				isEdit: false,
-			}));
+			if (this.shareholders !== undefined && this.shareholders.length > 0) {
+				return this.shareholders.map((shareholder) => ({
+					...shareholder,
+					isEdit: false,
+				}));
+			}
 		},
 		shareholdersTotalCapital() {
-			let shareholdersCapitalTotal = 0;
-			this.shareholders.forEach((shareholder) => {
-				shareholdersCapitalTotal += shareholder.capacity;
-			});
-			return shareholdersCapitalTotal - this.totalCapital;
+			if (this.shareholders !== undefined && this.shareholders.length > 0) {
+				let shareholdersCapitalTotal = 0;
+				this.shareholders.forEach((shareholder) => {
+					shareholdersCapitalTotal += shareholder.capacity;
+				});
+				return shareholdersCapitalTotal - this.totalCapital;
+			}
 		},
 	},
 };

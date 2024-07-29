@@ -3,3 +3,4 @@ from .fie_serializer import FieSerializer
 from .physical_serializer import PhysicalSerializer
 from .enterprise_serializer import EnterpriseSerializer
 from .dummy_fie_serializer import DummyFieSerializer
+from .base_shareholder_serializer import BaseShareholderSerializer

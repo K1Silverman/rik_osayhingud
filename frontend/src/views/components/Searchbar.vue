@@ -21,7 +21,7 @@
 				<li
 					v-for="result in searchResults"
 					class="p-2 hover:bg-gray-300 cursor-pointer w-full"
-					@click="selectFie(result)"
+					@click="selectElement(result)"
 				>
 					{{ result.name }} - {{ result.registry_code }}
 				</li>
@@ -57,7 +57,7 @@ export default {
 				this.showDropdown = false;
 			}
 		},
-		selectFie(result) {
+		selectElement(result) {
 			this.$emit('select', result);
 			this.showDropdown = false;
 		},

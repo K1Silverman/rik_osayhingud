@@ -22,51 +22,55 @@
 				required
 			/>
 		</div>
-		<div class="mb-2">
-			<label class="block text-sm font-medium text-gray-900"
-				>Asutaja(d) <span class="text-red-500">*</span></label
-			>
-			<div class="w-full min-w-min">
-				<ShareholderTable
-					v-if="form.shareholder.length > 0"
-					:shareholders="form.shareholder"
-					:totalCapital="form.total_capital"
+		<label class="block text-sm font-medium text-gray-900"
+			>Asutaja(d) <span class="text-red-500">*</span></label
+		>
+	</div>
+	<div class="mb-2 mx-auto" :class="fie ? 'w-[30%]' : 'w-[60%]'">
+		<div class="w-full min-w-min">
+			<ShareholderTable
+				v-if="form.shareholder.length > 0"
+				:shareholders="form.shareholder"
+				:totalCapital="form.total_capital"
+				:isFormEdit="true"
+				:isAdd="true"
+			/>
+		</div>
+
+		<div class="flex justify-start py-1 mx-auto w-min">
+			<input type="checkbox" v-model="fie" class="mr-2" />
+			<label class="block text-sm font-medium text-gray-900">FIE</label>
+		</div>
+		<Searchbar
+			v-if="fie"
+			@search="fetchSearchResults"
+			@select="addJuridicalFounder"
+			:searchResults="searchResults"
+		/>
+
+		<div v-if="!fie" class="flex w-[200%] relative">
+			<div class="mr-2" v-for="field in formFields.founder">
+				<label
+					class="block text-sm font-medium text-gray-900"
+					:for="field.key"
+					>{{ field.label }}</label
+				>
+				<input
+					:type="field.type"
+					:id="field.key"
+					v-model="physicalFounder[field.key]"
+					:required="form.shareholder.length < 1"
 				/>
 			</div>
-
-			<div class="flex justify-start py-1">
-				<input type="checkbox" v-model="fie" class="mr-2" />
-				<label class="block text-sm font-medium text-gray-900">FIE</label>
-			</div>
-			<Searchbar
-				v-if="fie"
-				@search="fetchSearchResults"
-				@select="addJuridicalFounder"
-				:searchResults="searchResults"
-			/>
-
-			<div v-if="!fie" class="flex w-[200%] relative">
-				<div class="mr-2" v-for="field in formFields.founder">
-					<label
-						class="block text-sm font-medium text-gray-900"
-						:for="field.key"
-						>{{ field.label }}</label
-					>
-					<input
-						:type="field.type"
-						:id="field.key"
-						v-model="physicalFounder[field.key]"
-						:required="form.shareholder.length < 1"
-					/>
-				</div>
-				<button
-					class="mt-5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-					@click="addPhysicalFounder()"
-				>
-					Lisa
-				</button>
-			</div>
+			<button
+				class="mt-5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+				@click="addPhysicalFounder()"
+			>
+				Lisa
+			</button>
 		</div>
+	</div>
+	<div class="w-min mx-auto">
 		<button
 			class="mt-5 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm w-full sm:w-auto px-5 py-2.5 text-center"
 			@click="submitForm()"
@@ -192,9 +196,16 @@ export default {
 		},
 		submitForm() {
 			this.validateForm();
-			this.$http.post('add', this.form).then((response) => {
-				console.log(response.data);
-			});
+			this.$http
+				.post('enterprise', this.form)
+				.then((response) => {
+					this.$router.push({
+						path: `/enterprise/${response.data.id}`,
+					});
+				})
+				.catch((error) => {
+					console.log(error);
+				});
 		},
 		validateForm() {
 			let nameLengthValidation =

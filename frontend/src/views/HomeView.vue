@@ -4,6 +4,7 @@
 			<h1 class="">Osaühingute otsing</h1>
 			<Searchbar
 				@search="fetchSearchResults"
+				@select="selectEnterprise"
 				:searchResults="searchResults"
 			></Searchbar>
 		</div>
@@ -34,6 +35,11 @@ export default {
 				.then((response) => {
 					this.searchResults = response.data;
 				});
+		},
+		selectEnterprise(selectedEnterprise) {
+			this.$router.push({
+				path: `/enterprise/${selectedEnterprise.id}`,
+			});
 		},
 	},
 };

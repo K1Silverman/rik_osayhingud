@@ -10,9 +10,9 @@ const routes = [
 		component: HomeView
 	},
 	{
-		path: '/:id',
+		path: '/enterprise/:id',
 		name: 'enterprisePageRoute',
-		component: EnterpriseView
+		component: EnterpriseView,
 	},
 	{
 		name: 'addEnterprisePageRoute',
