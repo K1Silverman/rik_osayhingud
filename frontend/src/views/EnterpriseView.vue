@@ -75,12 +75,6 @@
 			</button>
 		</div>
 	</div>
-	<div
-		v-else
-		class="w-full mx-auto text-[200px] text-center text-blue-400 font-bold"
-	>
-		404<br /><span class="text[100px]">Not Found</span>
-	</div>
 </template>
 <script>
 import ShareholderTable from './components/ShareholderTable.vue';
@@ -276,6 +270,7 @@ export default {
 				this.enterprise = response.data;
 			})
 			.catch((error) => {
+				this.$router.push('/');
 				this.eventBus.emit('show-alert', {
 					alertType: 'danger',
 					alertText: '404 Not Found',
