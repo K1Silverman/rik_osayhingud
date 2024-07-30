@@ -13,7 +13,10 @@
 				<!-- NIMI -->
 				<td
 					scope="row"
-					v-if="(shareholder.nic && !shareholder.isEdit) || shareholder.founder"
+					v-if="
+						(shareholder.nic && !shareholder.isEdit) ||
+						(shareholder.founder && !shareholder.registry_code)
+					"
 				>
 					{{ shareholder.first_name }} {{ shareholder.last_name }}
 					<span v-if="shareholder.founder" class="italic">(Asutaja)</span>
@@ -43,7 +46,10 @@
 				</td>
 				<!-- REG. KOOD/IK -->
 				<td
-					v-if="(shareholder.nic && !shareholder.isEdit) || shareholder.founder"
+					v-if="
+						(shareholder.nic && !shareholder.isEdit) ||
+						(shareholder.founder && !shareholder.registry_code)
+					"
 				>
 					{{ shareholder.nic }}
 				</td>
