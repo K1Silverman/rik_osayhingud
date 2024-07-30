@@ -200,7 +200,7 @@ export default {
 			if (errorMessages.length > 0) {
 				this.eventBus.emit('show-alert', {
 					alertType: 'danger',
-					alertText: errorMessages.join(),
+					alertText: errorMessages.join(''),
 				});
 			} else {
 				this.$http
