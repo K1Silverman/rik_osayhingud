@@ -86,6 +86,7 @@ export default {
 	name: 'AddEnterpriseView',
 	components: { ShareholderTable, Searchbar },
 	emits: ['search'],
+	inject: ['eventBus'],
 	data() {
 		return {
 			form: {
@@ -148,7 +149,7 @@ export default {
 				first_name: '',
 				last_name: '',
 				nic: '',
-				capacity: 1,
+				capacity: 0,
 				shareholderType: 'physical',
 			},
 			juridicalFounder: {
@@ -168,7 +169,7 @@ export default {
 				first_name: '',
 				last_name: '',
 				nic: '',
-				capacity: 1,
+				capacity: 0,
 				shareholderType: 'physical',
 			};
 		},
@@ -195,26 +196,93 @@ export default {
 				});
 		},
 		submitForm() {
-			this.validateForm();
-			this.$http
-				.post('enterprise', this.form)
-				.then((response) => {
-					this.$router.push({
-						path: `/enterprise/${response.data.id}`,
-					});
-				})
-				.catch((error) => {
-					console.log(error);
+			let errorMessages = this.validateForm();
+			if (errorMessages.length > 0) {
+				this.eventBus.emit('show-alert', {
+					alertType: 'danger',
+					alertText: errorMessages.join(),
 				});
+			} else {
+				this.$http
+					.post('enterprise', this.form)
+					.then((response) => {
+						this.$router.push({
+							path: `/enterprise/${response.data.id}`,
+						});
+						this.eventBus.emit('show-alert', {
+							alertType: 'success',
+							alertText: 'Osaühing on edukalt lisatud',
+						});
+					})
+					.catch((error) => {
+						let errorText = error.response.data.error;
+						for (const [key, value] of Object.entries(
+							error.response.data.serializer_errors
+						)) {
+							if (key == 'registry_code') {
+								errorText += ' - ' + value;
+							}
+						}
+
+						this.eventBus.emit('show-alert', {
+							alertType: 'danger',
+							alertText: errorText,
+						});
+					});
+			}
 		},
 		validateForm() {
-			let nameLengthValidation =
-				this.form.name.length >= 3 && this.form.name.length <= 100;
-			let registry_codeLengthValidation = this.form.registry_code.length == 7;
 			let currentDate = new Date();
-			let dateValidation = new Date(this.form.first_entry_date) <= currentDate;
-			let total_capitalSizeValidation = this.form.total_capital >= 2500;
-			// let foundersTotal_capitalValidation = this.foundersTotal_capital();
+			let formValidation = [
+				{
+					errorText:
+						'Osaühingu nimi peab olema 3 kuni 100 tähemärki pikk.<br/>',
+					valid: this.form.name.length >= 3 && this.form.name.length <= 100,
+				},
+				{
+					errorText:
+						'Registrikood peab olema unikaalne ja 7 tähemärki pikk.<br/>',
+					valid: this.form.registry_code.length == 7,
+				},
+				{
+					errorText: 'Asutamise kuupäev ei tohi olla tulevikus.<br/>',
+					valid: new Date(this.form.first_entry_date) <= currentDate,
+				},
+				{
+					errorText: 'Kogukapitali suurus peab olema vähemalt 2500€.<br/>',
+					valid: this.form.total_capital >= 2500,
+				},
+				{
+					errorText: 'Osaühingul peab olema vähemalt üks asutaja.<br/>',
+					valid: this.form.shareholder.length > 0,
+				},
+				{
+					errorText:
+						'Osanike osade summa ei võrdu kogukapitali suurusega.<br/>',
+					valid: this.shareholdersTotalCapitalValidation,
+				},
+			];
+			let errorMessages = [];
+			formValidation.map((validation) => {
+				if (!validation.valid) {
+					errorMessages.push(validation.errorText);
+				}
+			});
+			return errorMessages;
+		},
+	},
+	computed: {
+		shareholdersTotalCapitalValidation() {
+			if (
+				this.form.shareholder !== undefined &&
+				this.form.shareholder.length > 0
+			) {
+				let shareholdersCapitalTotal = 0;
+				this.form.shareholder.forEach((shareholder) => {
+					shareholdersCapitalTotal += shareholder.capacity;
+				});
+				return shareholdersCapitalTotal == this.form.total_capital;
+			}
 		},
 	},
 };

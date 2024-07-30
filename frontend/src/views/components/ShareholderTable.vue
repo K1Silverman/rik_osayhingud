@@ -11,13 +11,18 @@
 		<tbody class="">
 			<tr v-for="(shareholder, index) in modifiedShareholders" :key="index">
 				<!-- NIMI -->
-				<td scope="row" v-if="shareholder.nic && !shareholder.isEdit">
+				<td
+					scope="row"
+					v-if="(shareholder.nic && !shareholder.isEdit) || shareholder.founder"
+				>
 					{{ shareholder.first_name }} {{ shareholder.last_name }}
 					<span v-if="shareholder.founder" class="italic">(Asutaja)</span>
 				</td>
 				<td
 					scope="row"
-					v-else-if="shareholder.nic && shareholder.isEdit"
+					v-else-if="
+						shareholder.nic && !shareholder.founder && shareholder.isEdit
+					"
 					class="flex"
 				>
 					<input
@@ -37,10 +42,16 @@
 					<span v-if="shareholder.founder" class="italic">(Asutaja)</span>
 				</td>
 				<!-- REG. KOOD/IK -->
-				<td v-if="shareholder.nic && !shareholder.isEdit">
+				<td
+					v-if="(shareholder.nic && !shareholder.isEdit) || shareholder.founder"
+				>
 					{{ shareholder.nic }}
 				</td>
-				<td v-else-if="shareholder.nic && shareholder.isEdit">
+				<td
+					v-else-if="
+						shareholder.nic && !shareholder.founder && shareholder.isEdit
+					"
+				>
 					<input
 						type="text"
 						v-model="shareholder.nic"
@@ -58,14 +69,19 @@
 					/>
 				</td>
 				<!-- CAPACITY -->
-				<td v-if="shareholder.isEdit || shareholder.capacity < 1">
+				<td
+					v-if="shareholder.isEdit || shareholder.capacity < 1"
+					class="w-[20%]"
+				>
 					<input
 						type="number"
 						v-model="shareholder.capacity"
 						placeholder="Osaniku osa suurus (€)"
 					/>
 				</td>
-				<td v-else-if="!shareholder.isEdit">{{ shareholder.capacity }}</td>
+				<td v-else-if="!shareholder.isEdit" class="w-[20%]">
+					{{ shareholder.capacity }}
+				</td>
 				<td
 					v-if="(isFormEdit && shareholder.isEdit) || shareholder.capacity < 1"
 					class="w-20"
@@ -113,6 +129,7 @@
 <script>
 export default {
 	name: 'ShareholderTable',
+	inject: ['eventBus'],
 	props: {
 		shareholders: Array,
 		totalCapital: 0,
@@ -120,37 +137,88 @@ export default {
 		isAdd: false,
 	},
 	data() {
-		return {};
+		return {
+			editingRows: [],
+		};
 	},
 	methods: {
 		removeShareholder(index) {
 			this.shareholders.splice(index, 1);
 		},
 		editRow(index) {
-			this.modifiedShareholders[index].isEdit = true;
+			this.editingRows[index] = true;
 			this.$forceUpdate();
 		},
 		saveChanges(index) {
-			this.shareholders[index] = this.modifiedShareholders[index];
-			this.modifiedShareholders[index].isEdit = false;
+			let validation = this.validateChanges(index);
+			if (validation.length > 0) {
+				this.eventBus.emit('show-alert', {
+					alertType: 'danger',
+					alertText: validation,
+				});
+			} else {
+				this.shareholders[index] = this.modifiedShareholders[index];
+				this.editingRows[index] = !this.editingRows[index];
+			}
 		},
 		discardChanges(index) {
-			console.log('discardChanges1: ', this.modifiedShareholders[index]);
-
-			this.modifiedShareholders[index] = {
-				...this.shareholders[index],
-				isEdit: false,
-			};
-			console.log('discardChanges2: ', this.modifiedShareholders[index]);
+			this.editingRows[index] = false;
 			this.$forceUpdate();
+		},
+		validateChanges(index) {
+			let errorTexts = [];
+			if ('nic' in this.modifiedShareholders[index]) {
+				errorTexts = this.validatePhysicalShareholder(
+					this.modifiedShareholders[index]
+				).join('');
+			}
+			if (
+				typeof this.modifiedShareholders[index].capacity == String ||
+				this.modifiedShareholders[index].capacity < 1
+			) {
+				errorTexts = errorTexts.concat(
+					'Osaniku osa suurus peab olema suurem kui 1.<br />'
+				);
+			}
+			return errorTexts;
+		},
+		validatePhysicalShareholder(shareholder) {
+			let fieldsValidation = [
+				{
+					errorText: 'Eesnimi on kohustuslik. Pikkus: 2-100 tähemärki.<br />',
+					valid:
+						shareholder.first_name.length >= 2 &&
+						shareholder.first_name.length <= 100,
+				},
+				{
+					errorText:
+						'Perekonnanimi on kohustuslik. Pikkus: 2-100 tähemärki.<br />',
+					valid:
+						shareholder.last_name.length >= 2 &&
+						shareholder.last_name.length <= 100,
+				},
+				{
+					errorText: 'Isikukood on kohustuslik. Pikkus: 7-12 tähemärki.<br />',
+					valid: shareholder.nic.length >= 7 && shareholder.nic.length <= 12,
+				},
+			];
+
+			let errorTexts = [];
+
+			fieldsValidation.map((field) => {
+				if (!field.valid) {
+					errorTexts.push(field.errorText);
+				}
+			});
+			return errorTexts;
 		},
 	},
 	computed: {
 		modifiedShareholders() {
 			if (this.shareholders !== undefined && this.shareholders.length > 0) {
-				return this.shareholders.map((shareholder) => ({
+				return this.shareholders.map((shareholder, index) => ({
 					...shareholder,
-					isEdit: false,
+					isEdit: this.editingRows[index] || false,
 				}));
 			}
 		},

@@ -6,7 +6,7 @@ from .physical_serializer	import PhysicalSerializer
 class ShareholderSerializer(serializers.Serializer):
     class Meta:
         model = Shareholder
-        fields = ['id', 'capacity', 'founder']
+        fields = '__all__'
 
     def to_representation(self, instance):
         if instance.is_fie():

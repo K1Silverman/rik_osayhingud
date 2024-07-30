@@ -1,9 +1,10 @@
 <template>
 	<div class="w-max mx-auto mt-5">
-		<RouterLink to="/" v-if="!isHomepage" class="menuButton"
-			>Avalehele</RouterLink
-		>
-		<RouterLink to="/add" class="menuButton"
+		<RouterLink to="/" class="menuButton">Avalehele</RouterLink>
+		<RouterLink
+			to="/add"
+			v-if="currentUrl === '/' || currentUrl.startsWith('/enterprise/')"
+			class="menuButton"
 			>Osaühingu asutamise vorm</RouterLink
 		>
 	</div>
@@ -11,8 +12,10 @@
 <script>
 export default {
 	name: 'Menu',
-	props: {
-		isHomepage: true,
+	computed: {
+		currentUrl: function () {
+			return this.$route.path;
+		},
 	},
 };
 </script>

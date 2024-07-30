@@ -6,11 +6,10 @@ from ..models import Shareholder, Fie, Physical
 class BaseShareholderSerializer(ShareholderSerializer):
     class Meta(ShareholderSerializer.Meta):
         model = Shareholder
-        fields = ShareholderSerializer.Meta.fields
+        fields = '__all__'
 
     def to_representation(self, instance):
         data = super(ShareholderSerializer, self).to_representation(instance)
-
         if instance.is_fie():
             fie_serializer = FieSerializer(instance.fie)
             data.update(fie_serializer.data)
@@ -21,23 +20,16 @@ class BaseShareholderSerializer(ShareholderSerializer):
         return data
     
     def create(self, validated_data):
-        print(f"val_data: {str(validated_data)}")
         if 'registry_code' in validated_data:
-            
             fie_obj = Fie.objects.create(**validated_data)
-            print(f"fie_obj: {fie_obj}")
             return fie_obj
         if 'nic' in validated_data:
             physical_obj = Physical.objects.create(**validated_data)
-            print(f"physical_obj: {physical_obj}")
             return physical_obj
 
     def update(self, instance, validated_data):
-        """
-        Updates a Shareholder instance with validated data.
-        """
-        # Update the instance fields using validated_data
-        for field, value in validated_data.items():
-            setattr(instance, field, value)
+        for field in self.Meta.model._meta.get_fields():
+            if field.name in validated_data:
+                setattr(instance, field.name, validated_data[field.name])
         instance.save()
         return instance

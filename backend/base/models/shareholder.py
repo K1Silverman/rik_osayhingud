@@ -1,7 +1,8 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MinLengthValidator
 
 class Shareholder(models.Model):
-	capacity = models.IntegerField()
+	capacity = models.IntegerField(validators=[MinValueValidator(1)])
 	founder = models.BooleanField(default=True)
 
 	def is_fie(self):
@@ -21,9 +22,9 @@ class Fie(Shareholder):
 		return self.name
 	
 class Physical(Shareholder):
-	first_name = models.CharField(max_length=100)
-	last_name = models.CharField(max_length=100)
-	nic = models.CharField(max_length=12)
+	first_name = models.CharField(max_length=100, validators=[MinLengthValidator(2)])
+	last_name = models.CharField(max_length=100, validators=[MinLengthValidator(2)])
+	nic = models.CharField(max_length=12, validators=[MinLengthValidator(7)])
 	
 	def __str__(self):
 		return self.name

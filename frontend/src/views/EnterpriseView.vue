@@ -1,12 +1,10 @@
 <template>
-	<div class="w-full">
-		<div
-			v-if="enterprise.id !== undefined"
-			class="w-[70%] mx-auto text-center mb-5"
-			v-for="field in enterpriseUI"
-		>
+	<div v-if="enterprise.id !== undefined" class="w-full">
+		<div class="w-[70%] mx-auto text-center mb-5" v-for="field in enterpriseUI">
 			<h2 class="text-xl text-blue-700">{{ field.label }}</h2>
-			<span v-if="field.key === 'total_capital'">{{ realTotalCapital }} €</span>
+			<span v-if="field.key === 'total_capital'"
+				>{{ !isEdit ? enterprise.total_capital : realTotalCapital }} €</span
+			>
 			<span v-else-if="field.key === 'first_entry_date'">{{
 				formatDate(enterprise[field.key])
 			}}</span>
@@ -14,6 +12,7 @@
 		</div>
 		<div class="w-[50%] mx-auto">
 			<ShareholderTable
+				ref="shareholderTable"
 				:shareholders="enterprise.shareholder"
 				:totalCapital="enterprise.total_capital"
 				:isFormEdit="isEdit"
@@ -76,6 +75,12 @@
 			</button>
 		</div>
 	</div>
+	<div
+		v-else
+		class="w-full mx-auto text-[200px] text-center text-blue-400 font-bold"
+	>
+		404<br /><span class="text[100px]">Not Found</span>
+	</div>
 </template>
 <script>
 import ShareholderTable from './components/ShareholderTable.vue';
@@ -86,6 +91,7 @@ import { format, parseISO } from 'date-fns';
 export default {
 	name: 'EnterpriseView',
 	components: { ShareholderTable, Searchbar },
+	inject: ['eventBus'],
 	data: () => {
 		return {
 			enterpriseUI: [
@@ -164,6 +170,7 @@ export default {
 		},
 		toggleEdit() {
 			this.isEdit = !this.isEdit;
+			this.$refs.shareholderTable.editingRows = [];
 		},
 		addPhysicalFounder() {
 			this.enterprise.shareholder.push(this.physicalFounder);
@@ -198,15 +205,38 @@ export default {
 				});
 		},
 		saveEnterprise() {
-			this.$http
-				.patch('enterprise/' + this.enterprise.id, this.enterprise)
-				.then((response) => {
-					console.log(response.data);
-					this.isEdit = false;
-				})
-				.catch((error) => {
-					console.log(error);
+			let errorMessages = [];
+			this.validateCapacities();
+			if (this.enterprise.shareholder.length < 1) {
+				errorMessages.push('Osaühingul peab olema vähemalt üks osanik.<br />');
+			} else if (this.enterprise.total_capital < 2500) {
+				errorMessages.push(
+					'Kogukapital peab olema suurem kui või võrdne 2500<br />'
+				);
+			}
+			if (errorMessages.length > 0) {
+				this.eventBus.emit('show-alert', {
+					alertType: 'danger',
+					alertText: errorMessages.join('\n'),
 				});
+			} else {
+				this.$http
+					.patch('enterprise/' + this.enterprise.id, this.enterprise)
+					.then((response) => {
+						this.eventBus.emit('show-alert', {
+							alertType: 'success',
+							alertText: 'Muudatused salvestatud',
+						});
+						this.isEdit = false;
+					})
+					.catch((error) => {
+						this.eventBus.emit('show-alert', {
+							alertType: 'danger',
+							alertText:
+								'Midagi läks valesti. Kontrollige andmeid<br />' + error.data,
+						});
+					});
+			}
 		},
 		emptyFields() {
 			this.physicalFounder = {
@@ -229,11 +259,28 @@ export default {
 			};
 			this.searchResults = [];
 		},
+		validateCapacities() {
+			let valid = true;
+			this.enterprise.shareholder.forEach((shareholder) => {
+				if (shareholder.capacity <= 0) {
+					valid = false;
+				}
+			});
+			return valid ? [] : ['Osaniku osa suurus ei saa olla alla 1!'];
+		},
 	},
 	created() {
-		this.$http.get('enterprise/' + this.$route.params.id).then((response) => {
-			this.enterprise = response.data;
-		});
+		this.$http
+			.get('enterprise/' + this.$route.params.id)
+			.then((response) => {
+				this.enterprise = response.data;
+			})
+			.catch((error) => {
+				this.eventBus.emit('show-alert', {
+					alertType: 'danger',
+					alertText: '404 Not Found',
+				});
+			});
 	},
 	computed: {
 		realTotalCapital() {
@@ -241,6 +288,7 @@ export default {
 			this.enterprise.shareholder.forEach((shareholder) => {
 				totalCapital += shareholder.capacity;
 			});
+			this.enterprise.total_capital = totalCapital;
 			return totalCapital;
 		},
 	},
