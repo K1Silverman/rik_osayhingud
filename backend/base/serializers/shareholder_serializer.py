@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from ..models import Shareholder, Fie, Physical
+from ..models import Shareholder
 from .fie_serializer import FieSerializer
-from .physical_serializer	import PhysicalSerializer
+from .physical_serializer import PhysicalSerializer
+
 
 class ShareholderSerializer(serializers.Serializer):
     class Meta:
